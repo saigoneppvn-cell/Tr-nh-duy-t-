@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MeoMeo Browser - Interactive UI Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Cấu hình Font chữ và Reset cơ bản */
+        * {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #09090B;
+            min-height: 100dvh;
+            margin: 0;
+            padding: 0;
+            color: #F8FAFC;
+            overflow: hidden;
+        }
+
+        /* Vùng chứa giao diện ứng dụng tràn màn hình thực tế */
+        .app-container {
+            width: 100%;
+            height: 100dvh;
+            background-color: #09090B;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Giới hạn độ rộng nội dung trung tâm khi xem trên màn hình máy tính lớn */
+        .content-wrapper {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        /* Hiệu ứng phát sáng cho Logo MeoMeo */
+        .cat-logo-glow {
+            filter: drop-shadow(0 0 18px rgba(168, 85, 247, 0.55));
+        }
+
+        /* Thanh tìm kiếm kính mờ (Glassmorphism) */
+        .glass-search {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-top: 1px solid rgba(255, 255, 255, 0.16);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+            transition: all 0.25s ease;
+        }
+
+        .glass-search:focus-within {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(168, 85, 247, 0.5);
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.25);
+        }
+
+        /* Thẻ danh mục cài đặt (Surface Card) */
+        .settings-card {
+            background: linear-gradient(145deg, #191920 0%, #111115 100%);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-top: 1px solid rgba(255, 255, 255, 0.11);
+            border-radius: 18px;
+            transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .settings-card:hover {
+            background: linear-gradient(145deg, #202029 0%, #15151B 100%);
+            border-color: rgba(168, 85, 247, 0.3);
+        }
+
+        .settings-card:active {
+            transform: scale(0.98);
+        }
+
+        /* Nút Home đang chọn trên Bottom Nav */
+        .nav-item-active {
+            background: linear-gradient(180deg, rgba(139, 92, 246, 0.22) 0%, rgba(139, 92, 246, 0.08) 100%);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.25);
+            position: relative;
+        }
+
+        /* Chấm sáng phát quang dưới nút Home */
+        .nav-item-active::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #C084FC;
+            box-shadow: 0 0 10px 2px #A855F7;
+        }
+
+        /* Ẩn thanh cuộn nhưng vẫn cho phép cuộn mượt */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Hiệu ứng chuyển màn hình */
+        .screen-view {
+            animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- GIAO DIỆN ỨNG DỤNG MEO MEO BROWSER (FULL-SCREEN) -->
+    <div class="app-container">
+
+        <!-- ========================================== -->
+        <!-- MÀN HÌNH 1: TRANG CHỦ (HOME SCREEN)         -->
+        <!-- ========================================== -->
+        <div id="screen-home" class="screen-view flex-1 flex flex-col justify-between relative overflow-hidden">
+
+            <!-- Dải lụa tím nền góc trên trái (SVG Mesh Wave) -->
+            <svg class="absolute top-0 left-0 w-full h-80 pointer-events-none opacity-85" viewBox="0 0 390 280" preserveAspectRatio="none" fill="none">
+                <defs>
+                    <linearGradient id="topWave1" x1="0" y1="0" x2="320" y2="200" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#581C87" stop-opacity="0.7"/>
+                        <stop offset="50%" stop-color="#3B0764" stop-opacity="0.35"/>
+                        <stop offset="100%" stop-color="#09090B" stop-opacity="0"/>
+                    </linearGradient>
+                    <linearGradient id="topWave2" x1="-20" y1="40" x2="280" y2="240" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#7E22CE" stop-opacity="0.45"/>
+                        <stop offset="100%" stop-color="#09090B" stop-opacity="0"/>
+                    </linearGradient>
+                </defs>
+                <path d="M-20 -20 L290 -20 C220 70 110 110 -20 130 Z" fill="url(#topWave1)"/>
+                <path d="M-30 90 C90 70 210 110 340 210 L-30 220 Z" fill="url(#topWave2)"/>
+            </svg>
+
+            <!-- Dải lụa tím nền góc dưới (SVG Mesh Wave) -->
+            <svg class="absolute bottom-14 left-0 w-full h-72 pointer-events-none opacity-90" viewBox="0 0 390 250" preserveAspectRatio="none" fill="none">
+                <defs>
+                    <linearGradient id="botWave1" x1="390" y1="40" x2="40" y2="240" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#4C1D95" stop-opacity="0.65"/>
+                        <stop offset="60%" stop-color="#6D28D9" stop-opacity="0.3"/>
+                        <stop offset="100%" stop-color="#09090B" stop-opacity="0"/>
+                    </linearGradient>
+                    <linearGradient id="botWave2" x1="250" y1="90" x2="10" y2="250" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#7C3AED" stop-opacity="0.55"/>
+                        <stop offset="100%" stop-color="#1E1B4B" stop-opacity="0.1"/>
+                    </linearGradient>
+                </defs>
+                <path d="M390 20 C250 40 160 140 0 210 L0 250 L390 250 Z" fill="url(#botWave1)"/>
+                <path d="M390 110 C260 95 150 165 20 225 L390 245 Z" fill="url(#botWave2)"/>
+            </svg>
+
+            <!-- Header Menu Icon góc trên trái -->
+            <div class="w-full px-5 pt-4 z-20 flex justify-between items-center">
+                <button onclick="showToast('Đã mở Menu nhanh')" class="p-2 -ml-2 rounded-xl hover:bg-white/10 active:scale-95 transition">
+                    <svg class="w-6 h-6 text-slate-100" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Khu vực trung tâm: Logo Mèo + Tên Thương hiệu + Thanh Tìm Kiếm -->
+            <div class="content-wrapper flex-1 flex flex-col items-center justify-center px-6 -mt-10 z-20">
+
+                <!-- Custom SVG Logo MeoMeo phát sáng -->
+                <div class="mb-3 cat-logo-glow">
+                    <svg width="108" height="92" viewBox="0 0 120 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="catPurple" x1="15" y1="20" x2="95" y2="90" gradientUnits="userSpaceOnUse">
+                                <stop offset="0%" stop-color="#C084FC"/>
+                                <stop offset="50%" stop-color="#8B5CF6"/>
+                                <stop offset="100%" stop-color="#4F46E5"/>
+                            </linearGradient>
+                            <linearGradient id="catRim" x1="20" y1="10" x2="100" y2="85" gradientUnits="userSpaceOnUse">
+                                <stop offset="0%" stop-color="#FFFFFF"/>
+                                <stop offset="65%" stop-color="#E9D5FF"/>
+                                <stop offset="100%" stop-color="#7C3AED" stop-opacity="0.3"/>
+                            </linearGradient>
+                        </defs>
+                        <!-- Mảng khối tím tạo hình khuôn mặt mèo -->
+                        <path d="M22 65C14 55 18 39 30 33L28 16C28 13 32 11 35 13L50 25C57 23 65 23 72 25L87 13C90 11 94 13 94 16L92 33C103 39 107 55 99 65C91 76 76 82 60 82C44 82 29 76 22 65Z" fill="url(#catPurple)" fill-opacity="0.88"/>
+                        <!-- Vệt sáng viền trắng đặc trưng của tai và má mèo -->
+                        <path d="M26 42L28 15C28 12.5 31.5 11 34 12.8L48 24C56 22 65 22 73 24L87 12.8C89.5 11 93 12.5 93 15L95 40" stroke="url(#catRim)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <!-- Đường cong sáng dưới cằm -->
+                        <path d="M23 62C31 75 45 81 61 81C77 81 91 75 98 63" stroke="#A855F7" stroke-width="3" stroke-linecap="round"/>
+                        <!-- Đôi mắt mèo cười híp (hai vòng cung trắng) -->
+                        <path d="M36 56C39 48 50 48 53 56" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+                        <path d="M68 56C71 48 82 48 85 56" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+
+                <!-- Tên thương hiệu -->
+                <h1 class="text-[31px] font-bold tracking-tight text-white leading-tight">
+                    MeoMeo
+                </h1>
+                <p class="text-[16px] font-normal text-slate-400 tracking-wide mb-8">
+                    Browser
+                </p>
+
+                <!-- Thanh tìm kiếm kính mờ (Pill Search Bar) -->
+                <form onsubmit="handleSearch(event)" class="w-full glass-search rounded-full h-[52px] px-4 flex items-center gap-3">
+                    <!-- Icon Kính lúp -->
+                    <svg class="w-5 h-5 text-slate-300 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="7"/>
+                        <path stroke-linecap="round" d="M20 20l-3.5-3.5"/>
+                    </svg>
+
+                    <!-- Ô nhập liệu -->
+                    <input
+                        id="search-input"
+                        type="text"
+                        placeholder="Tìm kiếm hoặc nhập địa chỉ..."
+                        class="w-full bg-transparent text-[15px] text-white placeholder-slate-400 focus:outline-none"
+                    >
+
+                    <!-- Icon Micro -->
+                    <button type="button" onclick="showToast('Đang lắng nghe giọng nói...')" class="p-1.5 rounded-full hover:bg-white/10 text-slate-300 transition shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                            <rect x="9" y="2" width="6" height="11" rx="3"/>
+                            <path stroke-linecap="round" d="M5 10a7 7 0 0014 0M12 17v4M8 21h8"/>
+                        </svg>
+                    </button>
+                </form>
+
+            </div>
+
+            <!-- Thanh điều hướng đáy (Bottom Navigation Bar) -->
+            <div class="w-full bg-[#0C0C10]/90 backdrop-blur-xl border-t border-white/[0.06] px-3 pt-2 pb-3 z-30">
+                <div class="content-wrapper grid grid-cols-5 items-center text-center">
+
+                    <!-- Tab 1: Download -->
+                    <button onclick="showToast('Mở danh sách Tải xuống')" class="flex flex-col items-center justify-center py-1.5 text-slate-300 hover:text-white transition group">
+                        <svg class="w-5 h-5 mb-1 stroke-[1.75] group-active:scale-90 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v11m0 0l-4-4m4 4l4-4M5 19h14"/>
+                        </svg>
+                        <span class="text-[10px] font-medium">Download</span>
+                    </button>
+
+                    <!-- Tab 2: Bookmarks -->
+                    <button onclick="showToast('Mở Dấu trang đã lưu')" class="flex flex-col items-center justify-center py-1.5 text-slate-300 hover:text-white transition group">
+                        <svg class="w-5 h-5 mb-1 stroke-[1.75] group-active:scale-90 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 4h12a1 1 0 011 1v15l-7-4-7 4V5a1 1 0 011-1z"/>
+                        </svg>
+                        <span class="text-[10px] font-medium">Bookmarks</span>
+                    </button>
+
+                    <!-- Tab 3: Home (Active State) -->
+                    <button onclick="switchScreen('home')" class="nav-item-active flex flex-col items-center justify-center py-1.5 mx-1 rounded-[14px] text-white transition">
+                        <svg class="w-5 h-5 mb-1 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z"/>
+                            <path d="M12 5.432l8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z"/>
+                        </svg>
+                        <span class="text-[10px] font-semibold">Home</span>
+                    </button>
+
+                    <!-- Tab 4: Tabs (Số 2 trong khung vuông) -->
+                    <button onclick="showToast('Đang mở 2 thẻ trình duyệt')" class="flex flex-col items-center justify-center py-1.5 text-slate-300 hover:text-white transition group">
+                        <div class="w-5 h-5 mb-1 border-[1.75px] border-current rounded-[5px] flex items-center justify-center text-[11px] font-bold group-active:scale-90 transition">
+                            2
+                        </div>
+                        <span class="text-[10px] font-medium">Tabs</span>
+                    </button>
+
+                    <!-- Tab 5: Settings (Chuyển sang màn hình 2) -->
+                    <button onclick="switchScreen('settings')" class="flex flex-col items-center justify-center py-1.5 text-slate-300 hover:text-purple-400 transition group">
+                        <svg class="w-5 h-5 mb-1 stroke-[1.75] group-active:scale-90 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16"/>
+                        </svg>
+                        <span class="text-[10px] font-medium">Settings</span>
+                    </button>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- MÀN HÌNH 2: CÀI ĐẶT (SETTINGS SCREEN)       -->
+        <!-- ========================================== -->
+        <div id="screen-settings" class="screen-view hidden flex-1 flex flex-col bg-[#09090B] overflow-hidden">
+
+            <!-- Header Cài đặt -->
+            <div class="w-full bg-[#09090B]/90 backdrop-blur-md z-30">
+                <div class="content-wrapper px-5 pt-4 pb-3 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <button onclick="switchScreen('home')" class="p-2 -ml-2 rounded-full hover:bg-white/10 active:scale-90 transition">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m0 0l6 6m-6-6l6-6"/>
+                            </svg>
+                        </button>
+                        <h2 class="text-[22px] font-bold text-white tracking-tight">Cài đặt</h2>
+                    </div>
+                    <button onclick="showToast('Tìm kiếm trong Cài đặt')" class="p-2 -mr-2 rounded-full hover:bg-white/10 active:scale-90 transition">
+                        <svg class="w-5 h-5 text-slate-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <circle cx="11" cy="11" r="7"/>
+                            <path stroke-linecap="round" d="M20 20l-3.5-3.5"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Danh sách các thẻ Cài đặt có thể cuộn -->
+            <div class="flex-1 overflow-y-auto no-scrollbar pb-8">
+                <div class="content-wrapper px-4 space-y-3.5">
+
+                <!-- Nhóm 1: Giao diện -->
+                <div>
+                    <p class="text-[12px] font-semibold text-slate-400 mb-1.5 px-1">Giao diện</p>
+                    <button onclick="showToast('Mở tùy chỉnh Giao diện & Chủ đề')" class="w-full settings-card p-3.5 flex items-center justify-between text-left">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-9 h-9 rounded-xl bg-purple-500/10 flex items-center justify-center text-[#8B5CF6] shrink-0">
+                                <!-- Icon Bảng màu -->
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10c1.38 0 2.5-1.12 2.5-2.5 0-.61-.23-1.2-.64-1.67-.08-.1-.13-.21-.13-.33 0-.28.22-.5.5-.5H16c3.31 0 6-2.69 6-6 0-4.96-4.49-9-10-9zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 8 6.5 8 8 8.67 8 9.5 7.33 11 6.5 11zm3-4C8.67 7 8 6.33 8 5.5S8.67 4 9.5 4s1.5.67 1.5 1.5S10.33 7 9.5 7zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 4 14.5 4s1.5.67 1.5 1.5S15.33 7 14.5 7zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 8 17.5 8s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="text-[14.5px] font-semibold text-white">Giao diện</div>
+                                <div class="text-[12px] text-slate-400">Chế độ tối, màu sắc, trang chủ</div>
+                            </div>
+                        </div>
+                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Nhóm 2: Quyền riêng tư -->
+                <div>
+                    <p class="text-[12px] font-semibold text-slate-400 mb-1.5 px-1">Quyền riêng tư</p>
+                    <button onclick="showToast('Mở cài đặt Quyền riêng tư & Chặn quảng cáo')" class="w-full settings-card p-3.5 flex items-center justify-between text-left">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-9 h-9 rounded-xl bg-purple-500/10 flex items-center justify-center text-[#8B5CF6] shrink-0">
+                                <!-- Icon Khiên bảo mật -->
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3zm0 17.93V4.18l6 2.25v4.66c0 4.02-2.56 7.77-6 8.84z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="text-[14.5px] font-semibold text-white">Quyền riêng tư</div>
+                                <div class="text-[12px] text-slate-400">Chặn theo dõi, quản lý dữ liệu</div>
+                            </div>
+                        </div>
+                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Nhóm 3: Công cụ trình duyệt -->
+                <div>
+                    <p class="text-[12px] font-semibold text-slate-400 mb-1.5 px-1">Công cụ trình duyệt</p>
+                    <button onclick="showToast('Mở Công cụ trình duyệt')" class="w-full settings-card p-3.5 flex items-center justify-between text-left">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-9 h-9 rounded-xl bg-purple-500/10 flex items-center justify-center text-[#8B5CF6] shrink-0">
+                                <!-- Icon Cờ lê -->
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="text-[14.5px] font-semibold text-white">Công cụ trình duyệt</div>
+                                <div class="text-[12px] text-slate-400">Tải xuống, dịch, chế độ đọc</div>
+                            </div>
+                        </div>
+                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Nhóm 4: Tìm kiếm -->
+                <div>
+                    <p class="text-[12px] font-semibold text-slate-400 mb-1.5 px-1">Tìm kiếm</p>
+                    <button onclick="showToast('Chọn công cụ tìm kiếm mặc định')" class="w-full settings-card p-3.5 flex items-center justify-between text-left">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-9 h-9 rounded-xl bg-purple-500/10 flex items-center justify-center text-[#8B5CF6] shrink-0">
+                                <!-- Icon Kính lúp đậm -->
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                    <circle cx="11" cy="11" r="7"/>
+                                    <path stroke-linecap="round" d="M20 20l-3.5-3.5"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="text-[14.5px] font-semibold text-white">Công cụ tìm kiếm</div>
+                                <div class="text-[12px] text-slate-400">Google, Bing, DuckDuckGo...</div>
+                            </div>
+                        </div>
+                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Nhóm 5: Tab -->
+                <div>
+                    <p class="text-[12px] font-semibold text-slate-400 mb-1.5 px-1">Tab</p>
+                    <button onclick="showToast('Mở cài đặt Quản lý tab')" class="w-full settings-card p-3.5 flex items-center justify-between text-left">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-9 h-9 rounded-xl bg-purple-500/10 flex items-center justify-center text-[#8B5CF6] shrink-0">
+                                <!-- Icon Quản lý Tab -->
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 8h-7V5h7v6z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="text-[14.5px] font-semibold text-white">Quản lý tab</div>
+                                <div class="text-[12px] text-slate-400">Hành vi tab, mở tab mới</div>
+                            </div>
+                        </div>
+                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Nhóm 6: Lưu trữ -->
+                <div>
+                    <p class="text-[12px] font-semibold text-slate-400 mb-1.5 px-1">Lưu trữ</p>
+                    <button onclick="showToast('Quản lý Cache & Cookie')" class="w-full settings-card p-3.5 flex items-center justify-between text-left">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-9 h-9 rounded-xl bg-purple-500/10 flex items-center justify-center text-[#8B5CF6] shrink-0">
+                                <!-- Icon Database -->
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 3C7.58 3 4 4.79 4 7s3.58 4 8 4 8-1.79 8-4-3.58-4-8-4zm0 10c-4.42 0-8-1.79-8-4v3c0 2.21 3.58 4 8 4s8-1.79 8-4V9c0 2.21-3.58 4-8 4zm0 5c-4.42 0-8-1.79-8-4v3c0 2.21 3.58 4 8 4s8-1.79 8-4v-3c0 2.21-3.58 4-8 4z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="text-[14.5px] font-semibold text-white">Lưu trữ</div>
+                                <div class="text-[12px] text-slate-400">Cache, cookie, dữ liệu website</div>
+                            </div>
+                        </div>
+                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Nhóm 7: Ngôn ngữ -->
+                <div>
+                    <p class="text-[12px] font-semibold text-slate-400 mb-1.5 px-1">Ngôn ngữ</p>
+                    <button onclick="showToast('Ngôn ngữ hiện tại: Tiếng Việt')" class="w-full settings-card p-3.5 flex items-center justify-between text-left">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-9 h-9 rounded-xl bg-purple-500/10 flex items-center justify-center text-[#8B5CF6] shrink-0">
+                                <!-- Icon Quả địa cầu -->
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="9"/>
+                                    <path d="M3.6 9h16.8M3.6 15h16.8M12 3a14.5 14.5 0 000 18 14.5 14.5 0 000-18z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="text-[14.5px] font-semibold text-white">Ngôn ngữ</div>
+                                <div class="text-[12px] text-slate-400">Ngôn ngữ giao diện</div>
+                            </div>
+                        </div>
+                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Nhóm 8: Thông tin -->
+                <div>
+                    <p class="text-[12px] font-semibold text-slate-400 mb-1.5 px-1">Thông tin</p>
+                    <button onclick="showToast('MeoMeo Browser v1.0.0 - Build 2026')" class="w-full settings-card p-3.5 flex items-center justify-between text-left">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-9 h-9 rounded-xl bg-purple-500/10 flex items-center justify-center text-[#8B5CF6] shrink-0">
+                                <!-- Icon Info -->
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="9"/>
+                                    <path stroke-linecap="round" d="M12 11v5M12 8h.01"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="text-[14.5px] font-semibold text-white">Thông tin</div>
+                                <div class="text-[12px] text-slate-400">Phiên bản, giấy phép, MeoMeo</div>
+                            </div>
+                        </div>
+                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Thông báo nổi (Toast Notification) -->
+        <div id="toast-box" class="pointer-events-none opacity-0 transition-all duration-300 fixed bottom-20 left-1/2 -translate-x-1/2 bg-[#1E1E26]/95 border border-purple-500/40 text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-lg shadow-purple-900/30 backdrop-blur-md whitespace-nowrap z-50">
+            Thông báo
+        </div>
+
+    </div>
+
+    <script>
+        // Hàm chuyển đổi giữa màn hình Home và Settings
+        function switchScreen(screenName) {
+            const homeScreen = document.getElementById('screen-home');
+            const settingsScreen = document.getElementById('screen-settings');
+
+            if (screenName === 'home') {
+                settingsScreen.classList.add('hidden');
+                homeScreen.classList.remove('hidden');
+            } else {
+                homeScreen.classList.add('hidden');
+                settingsScreen.classList.remove('hidden');
+            }
+        }
+
+        // Xử lý khi người dùng nhấn Enter trên thanh tìm kiếm
+        function handleSearch(e) {
+            e.preventDefault();
+            const query = document.getElementById('search-input').value.trim();
+            if (query) {
+                showToast(`Đang tìm kiếm: "${query}"`);
+                document.getElementById('search-input').value = '';
+            } else {
+                showToast('Vui lòng nhập từ khóa hoặc URL');
+            }
+        }
+
+        // Hiển thị thông báo phản hồi khi bấm nút (thay thế alert)
+        let toastTimeout;
+        function showToast(message) {
+            const toast = document.getElementById('toast-box');
+            toast.textContent = message;
+            toast.classList.remove('opacity-0', 'translate-y-2');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-2');
+            }, 2200);
+        }
+    </script>
+</body>
+</html>
